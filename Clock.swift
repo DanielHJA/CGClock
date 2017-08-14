@@ -29,9 +29,8 @@ class Clock: UIView {
     var currentDate: Date!
     var timer: Timer!
     let formatter: DateFormatter = {
-    
+        
         let formatter = DateFormatter()
-        formatter.dateFormat = "HH:mm:ss"
         return formatter
         
     }()
@@ -49,7 +48,12 @@ class Clock: UIView {
         drawHour()
         drawMinute()
         drawSecond()
-        
+
+        clockLayer.addSublayer(hourLayer)
+        clockLayer.addSublayer(minuteLayer)
+        clockLayer.addSublayer(secondLayer)
+        layer.addSublayer(clockLayer)
+
         timer = Timer.scheduledTimer(timeInterval: 1, target: self, selector: #selector(updateTime), userInfo: nil, repeats: true)
     }
     
@@ -60,25 +64,26 @@ class Clock: UIView {
     func updateTime() {
     
         currentDate = Date()
-
-        let hourStroke = Double(formatter.calendar.component(.hour, from: currentDate)) / 48.0 // Double 24 H clock
+        
+        formatter.dateFormat = "hh:mm:ss"
+        
         let minuteStroke = Double(formatter.calendar.component(.minute, from: currentDate)) / 60.0
         let secondStroke = Double(formatter.calendar.component(.second, from: currentDate)) / 60.0
         
-        hourLayer.strokeEnd = CGFloat(hourStroke)
         minuteLayer.strokeEnd = CGFloat(minuteStroke)
         secondLayer.strokeEnd = CGFloat(secondStroke)
         
-        label.text = formatter.string(from: currentDate)
+        let hackyAMFormat = Int(formatter.string(from: currentDate).components(separatedBy: ":")[0])
+        
+        if let hourStroke = hackyAMFormat {
 
-    }
-    
-    func drawBase() {
-    
-        let radius: CGFloat = frame.width / 2
-        clockLayer = setuplayer(radius: radius, color: clockStrokeColor)
-        clockLayer.strokeEnd = 1.0
-        layer.addSublayer(clockLayer)
+            hourLayer.strokeEnd = CGFloat(hourStroke) / 12.0
+            
+        }
+
+        formatter.dateFormat = "HH:mm:ss"
+
+        label.text = formatter.string(from: currentDate)
     }
 
     func drawLabel() {
@@ -95,25 +100,29 @@ class Clock: UIView {
         self.addSubview(label)
     }
     
+    func drawBase() {
+        
+        let radius: CGFloat = frame.width / 2
+        clockLayer = setuplayer(radius: radius, color: clockStrokeColor)
+        clockLayer.strokeEnd = 1.0
+    }
+    
     func drawHour() {
 
         let radius: CGFloat = frame.width / 6
         hourLayer = setuplayer(radius: radius, color: hourStrokeColor)
-        layer.addSublayer(hourLayer)
     }
     
     func drawMinute() {
         
         let radius: CGFloat = frame.width / 3
         minuteLayer = setuplayer(radius: radius, color: minuteStrokeColor)
-        layer.addSublayer(minuteLayer)
     }
     
     func drawSecond() {
     
         let radius: CGFloat = frame.width / 2.4
         secondLayer = setuplayer(radius: radius, color: secondStrokeColor)
-        layer.addSublayer(secondLayer)
     }
     
     func setuplayer(radius: CGFloat, color: CGColor) -> CAShapeLayer {
