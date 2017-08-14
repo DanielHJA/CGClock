@@ -55,34 +55,62 @@ class Clock: UIView {
         layer.addSublayer(clockLayer)
 
         timer = Timer.scheduledTimer(timeInterval: 1, target: self, selector: #selector(updateTime), userInfo: nil, repeats: true)
+        
+        currentDate = Date()
+        
+        addSecondAnimation(duration: Double(60.0 - Double(formatter.calendar.component(.second, from: currentDate))), fromValue: CGFloat(Double(formatter.calendar.component(.second, from: currentDate)) / 60.0), repeatCount: 0, key: "initial")
     }
     
     required init?(coder aDecoder: NSCoder) {
         super.init(coder: aDecoder)
     }
     
-    func updateTime() {
+    func addSecondAnimation(duration: Double, fromValue: CGFloat, repeatCount: Float, key: String) {
     
+        let anim = CABasicAnimation(keyPath: "strokeEnd")
+        anim.duration = duration
+        anim.fillMode = kCAFillModeForwards
+        anim.repeatCount = repeatCount
+        anim.isRemovedOnCompletion = true
+        anim.fromValue = fromValue
+        anim.toValue = 1.0
+        secondLayer.add(anim, forKey: "smoothAnimation")
+    }
+    
+    var addAnim: Bool = true
+    
+    func updateTime() {
+        
         currentDate = Date()
         
         formatter.dateFormat = "hh:mm:ss"
         
         let minuteStroke = Double(formatter.calendar.component(.minute, from: currentDate)) / 60.0
-        let secondStroke = Double(formatter.calendar.component(.second, from: currentDate)) / 60.0
+        let secondStroke = Double(formatter.calendar.component(.second, from: currentDate))
         
-        minuteLayer.strokeEnd = CGFloat(minuteStroke)
-        secondLayer.strokeEnd = CGFloat(secondStroke)
+        
+        self.minuteLayer.strokeEnd = CGFloat(minuteStroke)
+        //self.secondLayer.strokeEnd = CGFloat(secondStroke)
+
+        if addAnim {
+
+            if secondStroke == 0.0 {
+        
+                addSecondAnimation(duration: 60.0, fromValue: 0.0, repeatCount: .infinity, key: "infinite")
+                addAnim = false
+            }
+        }
         
         let hackyAMFormat = Int(formatter.string(from: currentDate).components(separatedBy: ":")[0])
         
         if let hourStroke = hackyAMFormat {
-
+            
             hourLayer.strokeEnd = CGFloat(hourStroke) / 12.0
             
         }
-
+        
         formatter.dateFormat = "HH:mm:ss"
-
+        
         label.text = formatter.string(from: currentDate)
     }
 
