@@ -17,7 +17,7 @@ class ViewController: UIViewController {
 
     override func viewDidAppear(_ animated: Bool) {
         
-        let clock = Clock(rect: CGRect(x: 0, y: 0, width: 300, height: 300))
+        let clock = Clock(rect: CGRect(x: 0, y: 0, width: 200, height: 200))
         clock.center = self.view.center
         
         self.view.addSubview(clock)

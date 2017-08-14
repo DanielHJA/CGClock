@@ -11,16 +11,23 @@ import UIKit
 class Clock: UIView {
     
     var clockLayer: CAShapeLayer!
+    var hourLayer: CAShapeLayer!
+    var minuteLayer: CAShapeLayer!
+    var secondLayer: CAShapeLayer!
     
-    var clockFillColor: CGColor = UIColor.white.cgColor
-    var clockStrokeColor: CGColor = UIColor.blue.cgColor
+    var clockStrokeColor: CGColor = UIColor.black.cgColor
+    var hourStrokeColor: CGColor = UIColor.red.cgColor
+    var minuteStrokeColor: CGColor = UIColor.orange.cgColor
+    var secondStrokeColor: CGColor = UIColor.purple.cgColor
+    var clearColor: CGColor = UIColor.clear.cgColor
     
-    let π = Double.pi
+    var startAngle: CGFloat = CGFloat(Double.pi * 3 / 2)
+    var endAngle: CGFloat = CGFloat(CGFloat(Double.pi * 3 / 2) + CGFloat(4.0 * Double.pi / 2.0))
     
     var label: UILabel!
     
     var currentDate: Date!
-    var timer: Timer?
+    var timer: Timer!
     let formatter: DateFormatter = {
     
         let formatter = DateFormatter()
@@ -31,13 +38,17 @@ class Clock: UIView {
     
     convenience init(rect: CGRect) {
         self.init(frame: rect)
+        
     }
     
     override init(frame: CGRect) {
         super.init(frame: frame)
-    
+        
         drawBase()
         drawLabel()
+        drawHour()
+        drawMinute()
+        drawSecond()
         
         timer = Timer.scheduledTimer(timeInterval: 1, target: self, selector: #selector(updateTime), userInfo: nil, repeats: true)
     }
@@ -49,6 +60,15 @@ class Clock: UIView {
     func updateTime() {
     
         currentDate = Date()
+
+        let hourStroke = Double(formatter.calendar.component(.hour, from: currentDate)) / 48.0 // Double 24 H clock
+        let minuteStroke = Double(formatter.calendar.component(.minute, from: currentDate)) / 60.0
+        let secondStroke = Double(formatter.calendar.component(.second, from: currentDate)) / 60.0
+        
+        hourLayer.strokeEnd = CGFloat(hourStroke)
+        minuteLayer.strokeEnd = CGFloat(minuteStroke)
+        secondLayer.strokeEnd = CGFloat(secondStroke)
+        
         label.text = formatter.string(from: currentDate)
 
     }
@@ -56,17 +76,8 @@ class Clock: UIView {
     func drawBase() {
     
         let radius: CGFloat = frame.width / 2
-        let startAngle: CGFloat = CGFloat(π * 3 / 2)
-        let endAngle: CGFloat = CGFloat(startAngle + CGFloat(4.0 * π / 2.0))
-        
-        let clockPath = UIBezierPath(arcCenter: self.center, radius: radius, startAngle: startAngle, endAngle: endAngle, clockwise: true)
-    
-        clockLayer = CAShapeLayer()
-        clockLayer.path = clockPath.cgPath
-        clockLayer.fillColor = clockFillColor
-        clockLayer.strokeColor = clockStrokeColor
-        clockLayer.lineWidth = 6.0
-        
+        clockLayer = setuplayer(radius: radius, color: clockStrokeColor)
+        clockLayer.strokeEnd = 1.0
         layer.addSublayer(clockLayer)
     }
 
@@ -82,23 +93,43 @@ class Clock: UIView {
         label.backgroundColor = UIColor.clear
         label.text = ""
         self.addSubview(label)
-    
     }
     
     func drawHour() {
-    
-        
-        
+
+        let radius: CGFloat = frame.width / 6
+        hourLayer = setuplayer(radius: radius, color: hourStrokeColor)
+        layer.addSublayer(hourLayer)
     }
     
     func drawMinute() {
-    
         
-        
+        let radius: CGFloat = frame.width / 3
+        minuteLayer = setuplayer(radius: radius, color: minuteStrokeColor)
+        layer.addSublayer(minuteLayer)
     }
     
-    func drawsSecond() {
+    func drawSecond() {
     
+        let radius: CGFloat = frame.width / 2.4
+        secondLayer = setuplayer(radius: radius, color: secondStrokeColor)
+        layer.addSublayer(secondLayer)
+    }
     
+    func setuplayer(radius: CGFloat, color: CGColor) -> CAShapeLayer {
+
+        let secondPath = UIBezierPath(arcCenter: self.center, radius: radius, startAngle: startAngle, endAngle: endAngle, clockwise: true)
+        
+        let lLayer = CAShapeLayer()
+        lLayer.frame = bounds
+        lLayer.path = secondPath.cgPath
+        lLayer.fillColor = clearColor
+        lLayer.strokeColor = color
+        lLayer.lineWidth = 9.0
+        lLayer.lineCap = kCALineJoinRound
+        lLayer.strokeStart = 0.0
+        lLayer.strokeEnd = 0.0
+    
+        return lLayer
     }
 }
