@@ -54,11 +54,31 @@ class Clock: UIView {
         clockLayer.addSublayer(secondLayer)
         layer.addSublayer(clockLayer)
 
-        timer = Timer.scheduledTimer(timeInterval: 1, target: self, selector: #selector(updateTime), userInfo: nil, repeats: true)
+        setTimer()
+        
+        NotificationCenter.default.addObserver(self, selector: #selector(validInvalidTimer), name: Notification.Name.UIApplicationDidEnterBackground, object: nil)
+        NotificationCenter.default.addObserver(self, selector: #selector(validInvalidTimer), name: Notification.Name.UIApplicationWillEnterForeground, object: nil)
     }
     
     required init?(coder aDecoder: NSCoder) {
         super.init(coder: aDecoder)
+    }
+    
+    deinit {
+        NotificationCenter.default.removeObserver(self)
+    }
+    
+    func validInvalidTimer() {
+        
+        if timer.isValid {
+            timer.invalidate()
+        } else {
+            setTimer()
+        }
+    }
+    
+    func setTimer() {
+        timer = Timer.scheduledTimer(timeInterval: 1, target: self, selector: #selector(updateTime), userInfo: nil, repeats: true)
     }
     
     func updateTime() {
